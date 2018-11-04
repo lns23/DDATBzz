@@ -1,77 +1,117 @@
 #include <NewPing.h>
-const int motor1a=5;
-const int motor1b=4;
-const int motor2a=7;
-const int motor2b=6;
-const int trigger_pin_front;
-const int trigger_pin_left;
-const int trigger_pin_right;
-const int echo_pin_front;
-const int echo_pin_left;
-const int echo_pin_right;
-const int max_distance=200;
+#define SONAR_NUM  3
+#define MAX_DISTANCE 200
+const int motor1a=3;
+const int motor1b=5;
+const int motor2a=6;
+const int motor2b=9;
 int distance_left=0;
 int distance_right=0;
 int distance_forward=0; 
+int n =0;
  
-NewPing sonar1(trigger_pin_front,echo_pin_front,max_distance)
-NewPing sonar2(trigger_pin_left,echo_pin_left,max_distance);
-NewPing sonar3(trigger_pin_right,echo_pin_right,max_distance);
+NewPing sonar[SONAR_NUM] = {   // Sensor object array.
+  NewPing(10, 11, MAX_DISTANCE), // Each sensor's trigger pin, echo pin, and max distance to ping. 
+  NewPing(13, 12, MAX_DISTANCE), 
+  NewPing(4, 8, MAX_DISTANCE)};
+  
 void setup() {
-  Serial.beign(9600);
+  Serial.begin(9600);
   pinMode(motor1a,OUTPUT);
   pinMode(motor1b,OUTPUT);
   pinMode(motor2a,OUTPUT);
   pinMode(motor2b,OUTPUT);
+  
 
 
 }
 
 void loop() {
-  turnLeft();
-  
+bool stopped=false;
+distance_right= getDistanceRight();
+distance_left= getDistanceLeft();
+distance_forward=getDistanceFront();
 
-}
-void turnLeft()
-{
-  digitalWrite(motor1a,HIGH);
-  digitalWrite(motor1b,LOW);
-  digitalWrite(motor2a,LOW);
-  digitalWrite(motor2b,HIGH);
-  delay(1000);
-}
-void goStraight()
-{
-  digitalWrite(motor1a,HIGH);
-  digitalWrite(motor1b,LOW);
-  digitalWrite(motor2a,HIGH);
-  digitalWrite(motor2b,LOW);
+  Serial.println(distance_forward);
+  delay(150);
+  
+  if(17<distance_forward)
+  {
+    goStraight();
+  }
+  
+   else
+   {
+    stopMotor();
+    stopped=true;
+   }
+   if(stopped&&(distance_right<distance_left))
+   {
+    turnLeft();
+   }
+   else if(stopped&&(distance_left<distance_right))
+   {
+    turnRight();
+   }
+
+ 
+  /* else if (stopped&&((distance_left-distance_right)<10))
+   {
+    turnLeft();
+    delay(150);
+    stopMotor();
+   }*/
+
 }
 void turnRight()
 {
-  digitalWrite(motor1a,LOW);
-  digitalWrite(motor1b,HIGH);
-  digitalWrite(motor2a,HIGH);
-  digitalWrite(motor2b,LOW);1
+  analogWrite(motor1b,150);
+  analogWrite(motor1a,0);
+  analogWrite(motor2a,0);
+  analogWrite(motor2b,150);
+  delay(490);
+  stopMotor();
+  
 }
-void stop()
+void goStraight()
+{
+  analogWrite(motor1b,150);
+  analogWrite(motor1a,0);
+  analogWrite(motor2a,150);
+  analogWrite(motor2b,0);
+}
+void turnLeft()
+{
+  analogWrite(motor1b,0);
+  analogWrite(motor1a,150);
+  analogWrite(motor2a,150);
+  analogWrite(motor2b,0);
+  delay(490);
+  stopMotor();
+  
+}
+void stopMotor()
 {
    digitalWrite(motor1a,LOW);
-     digitalWrite(motor1b,LOW);u
+   digitalWrite(motor1b,LOW);
    digitalWrite(motor2a,LOW);
    digitalWrite(motor2b,LOW);
 }
-/*void getDistanceFront()
+int getDistanceFront()
 {
-  distance_front=sonar1.ping_cm();
-  Serial.println(distance_front);
+  int distance;
+  distance=sonar[2].ping_cm();
+  return distance;
 }
-void getDistanceLeft()
+int getDistanceLeft()
 {
-  distance_left=sonar2.ping_cm();
+  int distance;
+  distance=sonar[1].ping_cm();
+  return distance;
 }
-void getDistanceRight()
+int getDistanceRight()
 {
-  distance_right=sonar3.ping_cm();
+  int distance;
+  distance=sonar[0].ping_cm();
+  return distance;
 }
-*/
